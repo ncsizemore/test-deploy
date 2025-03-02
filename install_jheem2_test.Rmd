@@ -1,0 +1,102 @@
+---
+title: "jheem2 Installation Test"
+output: html_document
+---
+
+```{r setup, include=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## System Information
+
+```{r system_info}
+Sys.info()[c("sysname", "release", "version", "machine", "nodename")]
+R.version$version.string
+```
+
+## Setup Makevars
+
+```{r setup_makevars}
+# Create Makevars with explicit settings
+dir.create("~/.R", showWarnings = FALSE)
+makevars_content <- "CXX_STD = CXX17
+PKG_CXXFLAGS = -std=c++17 -I${R_HOME}/include
+PKG_LIBS = $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) -lstdc++ -L${R_HOME}/lib -lR"
+
+writeLines(makevars_content, "~/.R/Makevars")
+
+# Verify Makevars exists and show content
+if (file.exists("~/.R/Makevars")) {
+  cat("✅ Makevars file created successfully\n")
+  cat("Contents:\n")
+  cat(readLines("~/.R/Makevars"), sep = "\n")
+} else {
+  cat("❌ Failed to create Makevars file\n")
+}
+
+# Set environment variable to use this Makevars file
+Sys.setenv(R_MAKEVARS_USER = "~/.R/Makevars")
+```
+
+## Install Dependencies
+
+```{r dependencies}
+# Install necessary packages
+pkgs_to_install <- c("remotes", "Rcpp")
+for (pkg in pkgs_to_install) {
+  if (!require(pkg, character.only = TRUE)) {
+    install.packages(pkg)
+    if (require(pkg, character.only = TRUE)) {
+      cat(sprintf("✅ Successfully installed %s\n", pkg))
+    } else {
+      cat(sprintf("❌ Failed to install %s\n", pkg))
+    }
+  } else {
+    cat(sprintf("✅ %s already installed\n", pkg))
+  }
+}
+
+# Try to install locations package if needed
+if (!require("locations")) {
+  install.packages("locations")
+  if (require("locations")) {
+    cat("✅ Successfully installed locations\n")
+  } else {
+    cat("❌ Failed to install locations\n")
+  }
+} else {
+  cat("✅ locations already installed\n")
+}
+```
+
+## Install jheem2
+
+```{r install_jheem2}
+# Try installing jheem2
+tryCatch({
+  remotes::install_github("tfojo1/jheem2@test_deploy", verbose = TRUE)
+  cat("✅ jheem2 installed successfully!\n")
+}, error = function(e) {
+  cat("❌ Failed to install jheem2:\n")
+  cat(e$message, "\n")
+})
+
+# Check if jheem2 can be loaded
+if (require("jheem2")) {
+  cat("✅ Successfully loaded jheem2\n")
+} else {
+  cat("❌ Failed to load jheem2\n")
+}
+```
+
+## Test Basic jheem2 Functionality
+
+```{r test_jheem2, eval=require("jheem2")}
+# Only run this chunk if jheem2 was successfully loaded
+# Add a simple test of jheem2 functionality here
+cat("Testing basic jheem2 functionality...\n")
+# Call some simple jheem2 function that doesn't require complex inputs
+# For example:
+# result <- jheem2::some_simple_function()
+# print(result)
+```
