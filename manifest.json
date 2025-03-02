@@ -1793,11 +1793,11 @@
         "RemoteRepo": "jheem2",
         "RemoteUsername": "tfojo1",
         "RemoteRef": "test_deploy",
-        "RemoteSha": "e476e7f989c274a4291bb670bc9ad7c43a280458",
+        "RemoteSha": "d224e92a9780db0891e58bc731c9936aedf98f0f",
         "GithubRepo": "jheem2",
         "GithubUsername": "tfojo1",
         "GithubRef": "test_deploy",
-        "GithubSHA1": "e476e7f989c274a4291bb670bc9ad7c43a280458",
+        "GithubSHA1": "d224e92a9780db0891e58bc731c9936aedf98f0f",
         "NeedsCompilation": "yes",
         "Packaged": "2025-02-27 15:13:33 UTC; nicholas",
         "Built": "R 4.4.2; aarch64-apple-darwin20; 2025-02-27 15:13:35 UTC; unix"
