@@ -87,6 +87,24 @@ if (require("jheem2")) {
 } else {
   cat("❌ Failed to load jheem2\n")
 }
+
+tryCatch({
+  library(jheem2)
+}, error = function(e) {
+  cat("Detailed error when loading jheem2:\n")
+  cat(e$message, "\n")
+})
+
+# Check installed package
+if ("jheem2" %in% installed.packages()[,"Package"]) {
+  pkg_info <- installed.packages()[which(installed.packages()[,"Package"] == "jheem2"),]
+  print(pkg_info)
+  
+  # Check shared object files
+  pkg_path <- find.package("jheem2")
+  so_files <- list.files(file.path(pkg_path, "libs"), pattern = "\\.so$")
+  cat("Shared object files:", paste(so_files, collapse=", "), "\n")
+}
 ```
 
 ## Test Basic jheem2 Functionality
