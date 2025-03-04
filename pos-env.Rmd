@@ -1,0 +1,108 @@
+---
+title: "Posit Connect Environment Diagnostic"
+output: html_document
+---
+
+```{r setup}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+
+```{r cars}
+sessionInfo()
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r }
+# Check for compilers
+compilers <- list(
+  gcc = tryCatch(system("which gcc", intern = TRUE), error = function(e) "Not found"),
+  gpp = tryCatch(system("which g++", intern = TRUE), error = function(e) "Not found"),
+  clang = tryCatch(system("which clang", intern = TRUE), error = function(e) "Not found"),
+  clangpp = tryCatch(system("which clang++", intern = TRUE), error = function(e) "Not found")
+)
+compilers
+
+# Check compiler versions
+gcc_version <- if(compilers$gcc != "Not found") {
+  tryCatch(system("gcc --version", intern = TRUE), error = function(e) "Version check failed")
+} else {
+  "Not available"
+}
+
+gpp_version <- if(compilers$gpp != "Not found") {
+  tryCatch(system("g++ --version", intern = TRUE), error = function(e) "Version check failed")
+} else {
+  "Not available"
+}
+
+clang_version <- if(compilers$clang != "Not found") {
+  tryCatch(system("clang --version", intern = TRUE), error = function(e) "Version check failed")
+} else {
+  "Not available"
+}
+
+list(
+  gcc = gcc_version,
+  gpp = gpp_version,
+  clang = clang_version
+)
+```
+
+```{r }
+# Check linker version (where BFD issues occur)
+ld_version <- tryCatch(system("ld -v", intern = TRUE), error = function(e) "Version check failed")
+ld_version
+
+# Check which libraries ld is linked to
+ld_libs <- tryCatch(system("ldd $(which ld) | grep libbfd", intern = TRUE), 
+                   error = function(e) "Library check failed")
+ld_libs
+```
+
+```{r }
+# Get R's compilation environment
+r_compile_env <- list(
+  R_HOME = R.home(),
+  CC = Sys.getenv("CC"),
+  CXX = Sys.getenv("CXX"),
+  CFLAGS = Sys.getenv("CFLAGS"),
+  CXXFLAGS = Sys.getenv("CXXFLAGS"),
+  MAKE = Sys.getenv("MAKE"),
+  PKG_CFLAGS = Sys.getenv("PKG_CFLAGS"),
+  PKG_CXXFLAGS = Sys.getenv("PKG_CXXFLAGS"),
+  PKG_LIBS = Sys.getenv("PKG_LIBS")
+)
+r_compile_env
+```
+
+```{r }
+
+# Check if we can write to important directories
+dirs_to_check <- c(
+  home = "~",
+  r_lib = .libPaths()[1],
+  tmp = tempdir()
+)
+
+dir_permissions <- lapply(dirs_to_check, function(dir) {
+  test_file <- file.path(dir, "test_write_permission.txt")
+  can_write <- tryCatch({
+    writeLines("test", test_file)
+    file.remove(test_file)
+    TRUE
+  }, error = function(e) FALSE)
+  
+  list(
+    path = dir,
+    exists = dir.exists(dir),
+    can_write = can_write
+  )
+})
+```
+dir_permissions
