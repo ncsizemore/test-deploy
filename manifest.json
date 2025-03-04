@@ -3,7 +3,8 @@
   "locale": "en_US",
   "platform": "4.4.2",
   "metadata": {
-    "primary_rmd": null,
+    "appmode": "rmd-static",
+    "primary_rmd": "install_jheem2_test.Rmd",  // Replace with your RMarkdown file name
     "primary_html": null,
     "content_category": null,
     "has_parameters": false
