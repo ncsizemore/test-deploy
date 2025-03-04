@@ -19,49 +19,64 @@ sessionInfo()
 You can also embed plots, for example:
 
 ```{r }
-# Check for compilers
+# Check for compilers with safer error handling
+check_command <- function(command) {
+  result <- tryCatch(
+    system(paste("which", command), intern = TRUE),
+    error = function(e) character(0),
+    warning = function(w) character(0)
+  )
+  if (length(result) == 0) return("Not found")
+  return(result)
+}
+
 compilers <- list(
-  gcc = tryCatch(system("which gcc", intern = TRUE), error = function(e) "Not found"),
-  gpp = tryCatch(system("which g++", intern = TRUE), error = function(e) "Not found"),
-  clang = tryCatch(system("which clang", intern = TRUE), error = function(e) "Not found"),
-  clangpp = tryCatch(system("which clang++", intern = TRUE), error = function(e) "Not found")
+  gcc = check_command("gcc"),
+  gpp = check_command("g++"),
+  clang = check_command("clang"),
+  clangpp = check_command("clang++")
 )
 compilers
 
-# Check compiler versions
-gcc_version <- if(compilers$gcc != "Not found") {
-  tryCatch(system("gcc --version", intern = TRUE), error = function(e) "Version check failed")
-} else {
-  "Not available"
+# Check compiler versions with safer error handling
+check_version <- function(compiler) {
+  if (compiler == "Not found") return("Not available")
+  
+  result <- tryCatch(
+    system(paste(compiler, "--version"), intern = TRUE),
+    error = function(e) character(0),
+    warning = function(w) character(0)
+  )
+  if (length(result) == 0) return("Version check failed")
+  return(paste(result, collapse = "\n"))
 }
 
-gpp_version <- if(compilers$gpp != "Not found") {
-  tryCatch(system("g++ --version", intern = TRUE), error = function(e) "Version check failed")
-} else {
-  "Not available"
-}
-
-clang_version <- if(compilers$clang != "Not found") {
-  tryCatch(system("clang --version", intern = TRUE), error = function(e) "Version check failed")
-} else {
-  "Not available"
-}
-
-list(
-  gcc = gcc_version,
-  gpp = gpp_version,
-  clang = clang_version
+compiler_versions <- list(
+  gcc = check_version("gcc"),
+  gpp = check_version("g++"),
+  clang = check_version("clang")
 )
+compiler_versions
 ```
 
 ```{r }
-# Check linker version (where BFD issues occur)
-ld_version <- tryCatch(system("ld -v", intern = TRUE), error = function(e) "Version check failed")
+# Check linker version with safer error handling
+ld_version <- tryCatch(
+  system("ld -v", intern = TRUE),
+  error = function(e) "Version check failed",
+  warning = function(w) "Version check failed with warning"
+)
+if (length(ld_version) == 0) ld_version <- "No output from command"
 ld_version
 
 # Check which libraries ld is linked to
-ld_libs <- tryCatch(system("ldd $(which ld) | grep libbfd", intern = TRUE), 
-                   error = function(e) "Library check failed")
+ld_libs_cmd <- "ldd $(which ld) 2>/dev/null | grep libbfd || echo 'Command failed'"
+ld_libs <- tryCatch(
+  system(ld_libs_cmd, intern = TRUE),
+  error = function(e) "Library check failed",
+  warning = function(w) "Library check failed with warning"
+)
+if (length(ld_libs) == 0) ld_libs <- "No output from command"
 ld_libs
 ```
 
@@ -104,5 +119,35 @@ dir_permissions <- lapply(dirs_to_check, function(dir) {
     can_write = can_write
   )
 })
-```
+
 dir_permissions
+```
+
+```{r }
+# Try to determine what libraries are available
+check_lib <- function(lib_name) {
+  cmd <- paste0("ldconfig -p 2>/dev/null | grep ", lib_name, " || echo 'Not found'")
+  result <- tryCatch(
+    system(cmd, intern = TRUE),
+    error = function(e) "Check failed",
+    warning = function(w) "Check failed with warning"
+  )
+  if (length(result) == 0) return("No output from command")
+  return(result)
+}
+
+# Check for specific libraries that might be relevant
+libs_to_check <- c("libbfd", "libstdc++", "libgcc_s")
+libs_available <- lapply(libs_to_check, check_lib)
+names(libs_available) <- libs_to_check
+libs_available
+
+# Try to determine OS details
+os_details <- tryCatch(
+  system("cat /etc/os-release 2>/dev/null || echo 'OS release info not available'", intern = TRUE),
+  error = function(e) "Command failed",
+  warning = function(w) "Command failed with warning"
+)
+if (length(os_details) == 0) os_details <- "No output from command"
+os_details
+```
