@@ -10,111 +10,38 @@ knitr::opts_chunk$set(echo = TRUE)
 ## System Information
 
 ```{r system_info}
-Sys.info()[c("sysname", "release", "version", "machine", "nodename")]
-R.version$version.string
+# Load the package
+library(jheem2)
+
+# Print package version
+packageVersion("jheem2")
+
+# Check if package is loaded correctly
+"jheem2" %in% (.packages())
 ```
 
-## Setup Makevars
+```{r }
+# List all exported functions from the package
+exported_funcs <- ls("package:jheem2")
+head(exported_funcs, 20)  # Show first 20 functions
 
-```{r setup_makevars}
-# Create Makevars with explicit settings
-dir.create("~/.R", showWarnings = FALSE)
-makevars_content <- "CXX_STD = CXX17
-PKG_CXXFLAGS = -std=c++17 -I${R_HOME}/include
-PKG_LIBS = $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) -lstdc++ -L${R_HOME}/lib -lR"
-
-writeLines(makevars_content, "~/.R/Makevars")
-
-# Verify Makevars exists and show content
-if (file.exists("~/.R/Makevars")) {
-  cat("✅ Makevars file created successfully\n")
-  cat("Contents:\n")
-  cat(readLines("~/.R/Makevars"), sep = "\n")
-} else {
-  cat("❌ Failed to create Makevars file\n")
-}
-
-# Set environment variable to use this Makevars file
-Sys.setenv(R_MAKEVARS_USER = "~/.R/Makevars")
+# Count the number of available functions
+length(exported_funcs)
 ```
 
-## Install Dependencies
+```{r}
+# Get detailed package information
+pkg_info <- packageDescription("jheem2")
+names(pkg_info)  # List the available fields
 
-```{r dependencies}
-# Install necessary packages
-pkgs_to_install <- c("remotes", "Rcpp")
-for (pkg in pkgs_to_install) {
-  if (!require(pkg, character.only = TRUE)) {
-    install.packages(pkg)
-    if (require(pkg, character.only = TRUE)) {
-      cat(sprintf("✅ Successfully installed %s\n", pkg))
-    } else {
-      cat(sprintf("❌ Failed to install %s\n", pkg))
-    }
-  } else {
-    cat(sprintf("✅ %s already installed\n", pkg))
-  }
-}
-
-# Try to install locations package if needed
-if (!require("locations")) {
-  install.packages("locations")
-  if (require("locations")) {
-    cat("✅ Successfully installed locations\n")
-  } else {
-    cat("❌ Failed to install locations\n")
-  }
-} else {
-  cat("✅ locations already installed\n")
-}
+# Print selected package details
+list(
+  Package = pkg_info$Package,
+  Version = pkg_info$Version,
+  Title = pkg_info$Title,
+  Description = pkg_info$Description,
+  Depends = pkg_info$Depends,
+  Imports = pkg_info$Imports
+)
 ```
 
-## Install jheem2
-
-```{r install_jheem2}
-# Try installing jheem2
-tryCatch({
-  remotes::install_github("tfojo1/jheem2@test_deploy", verbose = TRUE)
-  cat("✅ jheem2 installed successfully!\n")
-}, error = function(e) {
-  cat("❌ Failed to install jheem2:\n")
-  cat(e$message, "\n")
-})
-
-# Check if jheem2 can be loaded
-if (require("jheem2")) {
-  cat("✅ Successfully loaded jheem2\n")
-} else {
-  cat("❌ Failed to load jheem2\n")
-}
-
-tryCatch({
-  library(jheem2)
-}, error = function(e) {
-  cat("Detailed error when loading jheem2:\n")
-  cat(e$message, "\n")
-})
-
-# Check installed package
-if ("jheem2" %in% installed.packages()[,"Package"]) {
-  pkg_info <- installed.packages()[which(installed.packages()[,"Package"] == "jheem2"),]
-  print(pkg_info)
-  
-  # Check shared object files
-  pkg_path <- find.package("jheem2")
-  so_files <- list.files(file.path(pkg_path, "libs"), pattern = "\\.so$")
-  cat("Shared object files:", paste(so_files, collapse=", "), "\n")
-}
-```
-
-## Test Basic jheem2 Functionality
-
-```{r test_jheem2, eval=require("jheem2")}
-# Only run this chunk if jheem2 was successfully loaded
-# Add a simple test of jheem2 functionality here
-cat("Testing basic jheem2 functionality...\n")
-# Call some simple jheem2 function that doesn't require complex inputs
-# For example:
-# result <- jheem2::some_simple_function()
-# print(result)
-```
